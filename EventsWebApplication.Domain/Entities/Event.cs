@@ -1,11 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace EventsWebApplication.Domain.Entities;
+﻿namespace EventsWebApplication.Domain.Entities;
 public class Event : IEntity
 {
-    [Key]
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public Guid Id { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }

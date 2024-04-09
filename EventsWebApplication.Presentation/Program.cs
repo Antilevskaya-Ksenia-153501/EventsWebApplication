@@ -1,3 +1,8 @@
+using EventsWebApplication.Application.Repositories;
+using EventsWebApplication.Infrastructure.Data;
+using EventsWebApplication.Infrastructure.Repositories;
+using Microsoft.EntityFrameworkCore;
+
 namespace EventsWebApplication.Presentation
 {
     public class Program
@@ -13,6 +18,11 @@ namespace EventsWebApplication.Presentation
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            builder.Services.AddDbContext<AppDbContext>(options => 
+                options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -24,8 +34,8 @@ namespace EventsWebApplication.Presentation
 
             app.UseHttpsRedirection();
 
+            app.UseAuthentication();
             app.UseAuthorization();
-
 
             app.MapControllers();
 

@@ -1,3 +1,4 @@
+using EventsWebApplication.Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EventsWebApplication.Presentation.Controllers
