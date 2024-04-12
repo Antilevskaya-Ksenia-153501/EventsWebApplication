@@ -5,8 +5,10 @@ public class Event : IEntity
     public string Name { get; set; }
     public string Description { get; set; }
     public DateTime DateTime { get; set; }
-    public string Location { get; set; }
-    public string Category { get; set; }
+    public Guid LocationId { get; set; }
+    public Location? Location { get; set; }
+    public Guid CategoryId { get; set; }
+    public Category? Category { get; set; }
     public int MaxParticipants { get; set; }
     public List<ApplicationUser> Participants { get; set; } = new();
     public string? Image { get; set; }

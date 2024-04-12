@@ -1,4 +1,5 @@
 using EventsWebApplication.Application.Repositories;
+using EventsWebApplication.Application.Services.EventService;
 using EventsWebApplication.Infrastructure.Data;
 using EventsWebApplication.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -22,6 +23,8 @@ namespace EventsWebApplication.Presentation
                 options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+            builder.Services.AddScoped<IEventService, EventService>();
 
             var app = builder.Build();
 
