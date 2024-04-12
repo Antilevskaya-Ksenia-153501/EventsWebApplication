@@ -2,6 +2,7 @@
 using EventsWebApplication.Domain.Entities;
 using EventsWebApplication.Domain.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 
 namespace EventsWebApplication.Application.Services.EventService;
 public class EventService : IEventService
@@ -11,9 +12,28 @@ public class EventService : IEventService
     { 
         _unitOfWork = unitOfWork;
     }
-    public Task<ResponseModel<Event>> CreateEventAsync(Event eventItem)
+    public async Task<ResponseModel<Event>> CreateEventAsync(Event eventItem)
     {
-        throw new NotImplementedException();
+        await _unitOfWork.EventRepository.AddAsync(eventItem);
+        try
+        {
+            await _unitOfWork.SaveAllAsync();
+        }
+        catch (Exception ex)
+        {
+            return new ResponseModel<Event>
+            {
+                Data = null,
+                Success = false,
+                ErrorMessage = ex.Message
+            };
+        }
+        return new ResponseModel<Event>()
+        {
+            Data = eventItem, 
+            Success = true,
+            ErrorMessage = null
+        };
     }
 
     public async Task DeleteEventAsync(Guid id)
@@ -22,6 +42,7 @@ public class EventService : IEventService
         if (entity == null)
             throw new ArgumentException($"Event with id = {id} was not found");
         await _unitOfWork.EventRepository.DeleteAsync(entity.Result);
+        await _unitOfWork.SaveAllAsync();
     }
 
     public Task<ResponseModel<Event>> GetEventByIdAsync(Guid id)
@@ -67,7 +88,7 @@ public class EventService : IEventService
     {
         var query = _unitOfWork.EventRepository.ListAllAsync();
         var dataList = new PaginationModel<Event>();
-        int totalPages = (int)Math.Ceiling(query.Result.Count / (double)pageSize);
+        int totalPages = (int)Math.Ceiling(query.Result.Count() / (double)pageSize);
         if (page > totalPages)
         {
             return Task.FromResult(new ResponseModel<PaginationModel<Event>>()
@@ -90,7 +111,37 @@ public class EventService : IEventService
 
     public Task<ResponseModel<PaginationModel<Event>>> GetEventListByCategoryAsync(string category, int page = 1, int pageSize = 3)
     {
-        throw new NotImplementedException();
+        var query = _unitOfWork.EventRepository.ListAsync(obj => obj.Category.Name == category, includesProperties: e => e.Category);
+        var dataList = new PaginationModel<Event>();
+
+        if (query.Result == null)
+        {
+            return Task.FromResult(new ResponseModel<PaginationModel<Event>>
+            {
+                Data = dataList,
+                Success = false,
+                ErrorMessage = $"There is no events with category = {category}"
+            });
+        }
+        int totalPages = (int)Math.Ceiling(query.Result.Count() / (double)pageSize);
+        if (page > totalPages)
+        {
+            return Task.FromResult(new ResponseModel<PaginationModel<Event>>()
+            {
+                Data = null,
+                Success = false,
+                ErrorMessage = "There is no such page"
+            });
+        }
+        dataList.Items = query.Result.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+        dataList.CurrentPage = page;
+        dataList.TotalPages = totalPages;
+        return Task.FromResult(new ResponseModel<PaginationModel<Event>>()
+        {
+            Data = dataList,
+            Success = true,
+            ErrorMessage = null
+        });
     }
 
     public Task<ResponseModel<PaginationModel<Event>>> GetEventListByDateAsync(DateTime date, int page = 1, int pageSize = 3)
@@ -100,7 +151,37 @@ public class EventService : IEventService
 
     public Task<ResponseModel<PaginationModel<Event>>> GetEventListByLocationAsync(string location, int page = 1, int pageSize = 3)
     {
-        throw new NotImplementedException();
+        var query = _unitOfWork.EventRepository.ListAsync(obj => obj.Location.Name == location, includesProperties: e => e.Location);
+        var dataList = new PaginationModel<Event>();
+
+        if (query.Result == null)
+        {
+            return Task.FromResult(new ResponseModel<PaginationModel<Event>>
+            {
+                Data = dataList,
+                Success = false,
+                ErrorMessage = $"There is no events with location = {location}"
+            });
+        }
+        int totalPages = (int)Math.Ceiling(query.Result.Count() / (double)pageSize);
+        if (page > totalPages)
+        {
+            return Task.FromResult(new ResponseModel<PaginationModel<Event>>()
+            {
+                Data = null,
+                Success = false,
+                ErrorMessage = "There is no such page"
+            });
+        }
+        dataList.Items = query.Result.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+        dataList.CurrentPage = page;
+        dataList.TotalPages = totalPages;
+        return Task.FromResult(new ResponseModel<PaginationModel<Event>>()
+        {
+            Data = dataList,
+            Success = true,
+            ErrorMessage = null
+        });
     }
 
     public Task<ResponseModel<string>> SaveImageAsync(Guid id, IFormFile formFile)
@@ -108,8 +189,8 @@ public class EventService : IEventService
         throw new NotImplementedException();
     }
 
-    public Task<ResponseModel<Event>> UpdateEventAsync(Guid id, Event eventItem)
+    public async Task UpdateEventAsync(Event eventItem)
     {
-        throw new NotImplementedException();
+        await _unitOfWork.EventRepository.UpdateAsync(eventItem);
     }
 }
